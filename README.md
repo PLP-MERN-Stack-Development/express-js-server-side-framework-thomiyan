@@ -1,62 +1,113 @@
+```markdown
 # Express.js RESTful API Assignment
 
-This assignment focuses on building a RESTful API using Express.js, implementing proper routing, middleware, and error handling.
+This project implements the Week 2 assignment: a RESTful API for products using Express.js.
 
-## Assignment Overview
+## Quick Start
 
-You will:
-1. Set up an Express.js server
-2. Create RESTful API routes for a product resource
-3. Implement custom middleware for logging, authentication, and validation
-4. Add comprehensive error handling
-5. Develop advanced features like filtering, pagination, and search
+1. Copy .env.example to .env and set values:
+   ```
+   PORT=3000
+   API_KEY=my-secret-api-key
+   ```
 
-## Getting Started
-
-1. Accept the GitHub Classroom assignment invitation
-2. Clone your personal repository that was created by GitHub Classroom
-3. Install dependencies:
+2. Install dependencies:
    ```
    npm install
    ```
-4. Run the server:
+
+3. Start:
    ```
    npm start
    ```
 
-## Files Included
-
-- `Week2-Assignment.md`: Detailed assignment instructions
-- `server.js`: Starter Express.js server file
-- `.env.example`: Example environment variables file
-
-## Requirements
-
-- Node.js (v18 or higher)
-- npm or yarn
-- Postman, Insomnia, or curl for API testing
+4. The server will run at http://localhost:3000
 
 ## API Endpoints
 
-The API will have the following endpoints:
+Base: /api/products
 
-- `GET /api/products`: Get all products
-- `GET /api/products/:id`: Get a specific product
-- `POST /api/products`: Create a new product
-- `PUT /api/products/:id`: Update a product
-- `DELETE /api/products/:id`: Delete a product
+- GET /api/products
+  - Query params:
+    - category (string) - filter by category
+    - search (string) - search by name (case-insensitive)
+    - page (number) - page number (default 1)
+    - limit (number) - items per page (default 10)
+  - Response:
+    - { page, limit, total, data: [products...] }
 
-## Submission
+- GET /api/products/:id
+  - Get a single product by ID
 
-Your work will be automatically submitted when you push to your GitHub Classroom repository. Make sure to:
+- POST /api/products
+  - Requires header: x-api-key: <API_KEY>
+  - Body (JSON):
+    - name (string, min 2 chars)
+    - description (string, min 5 chars)
+    - price (number, >=0)
+    - category (string)
+    - inStock (boolean)
+  - Creates a product. Returns 201 with created product.
 
-1. Complete all the required API endpoints
-2. Implement the middleware and error handling
-3. Document your API in the README.md
-4. Include examples of requests and responses
+- PUT /api/products/:id
+  - Requires header: x-api-key: <API_KEY>
+  - Body: same as POST
+  - Updates an existing product
 
-## Resources
+- DELETE /api/products/:id
+  - Requires header: x-api-key: <API_KEY>
+  - Deletes a product
 
-- [Express.js Documentation](https://expressjs.com/)
-- [RESTful API Design Best Practices](https://restfulapi.net/)
-- [HTTP Status Codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) 
+- GET /api/products/stats
+  - Returns total and count by category:
+    - { total, countByCategory: { electronics: 2, kitchen: 1 } }
+
+## Authentication
+
+- The server uses a simple API key mechanism.
+- Provide API key in the `x-api-key` header or `Authorization: Bearer <key>`.
+- For local development, the default key is `my-secret-api-key`, set in .env.
+
+## Error Handling
+
+- Validation errors return 400 with details.
+- Unauthorized requests return 401.
+- Not found resources return 404.
+- Unexpected errors return 500.
+
+## Examples
+
+Create product (curl):
+```
+curl -X POST http://localhost:3000/api/products \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: my-secret-api-key" \
+  -d '{
+    "name":"Blender",
+    "description":"Powerful blender",
+    "price":99.99,
+    "category":"kitchen",
+    "inStock":true
+  }'
+```
+
+List products with pagination:
+```
+curl "http://localhost:3000/api/products?page=1&limit=2"
+```
+
+Search by name:
+```
+curl "http://localhost:3000/api/products?search=lap"
+```
+
+Get stats:
+```
+curl http://localhost:3000/api/products/stats
+```
+
+## Notes
+
+- This implementation uses in-memory storage (an array). For production, replace with a database.
+
+```
